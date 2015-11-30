@@ -15,7 +15,6 @@ import matplotlib.pyplot as plt
 import codecs
 from math import *
 import re
-from pandas import *
 
 argv = sys.argv
 argNum = len(sys.argv)
@@ -34,11 +33,12 @@ def checkUsage():
     return check
 
 def usage():
-    print("\nコマンドライン引数: (入力ファイル名)(サンプリング間隔)(範囲)(開始点)(終端点)")
-    print("\t範囲:\t-a: すべての区間\t(開始点)(終端点)は入力なし")
-    print("\t　　 \t-s: 開始点のみ指定\t(終端点)は入力なし")
-    print("\t　　 \t-f: 終端点のみ指定\t(開始点)のところに終端点を入力")
-    print("\t　　 \t-p: 開始点,終端点を指定")
+    print("\nコマンドライン引数: (入力ファイル名)(サンプリング間隔)(範囲)(値1)(値2)")
+    print("\t範囲:\t-a: すべての区間\t(値1)(値2)は入力なし")
+    print("\t　　 \t-n: (値1)にNの値を指定。最初からN間隔でフーリエ変換")
+    print("\t　　 \t-s: (値1)に開始点を指定。そこから最後まで\t(値2)はなし")
+    print("\t　　 \t-f: (値1)に終端点を指定。最初からそこまで\t(値2)はなし")
+    print("\t　　 \t-p: (値1)に開始点,(値2)に終端点を指定")
     exit()
 
 def importData():
@@ -68,6 +68,9 @@ def makePalam(y):
     if argv[3] == "-a":
         start = 0
         N = len(y)
+    elif argv[3] == "-n":
+        start = "n"
+        N = int(argv[4])
     elif argv[3] == "-s":
         start = int(argv[4])
         N = len(y) - int(argv[4])
@@ -96,12 +99,14 @@ def FFT(y,dt):
     print("\tsucsess!")
     return sig,freq
 
-def plot(base,coe1,coe2,coe3,Hz):
+def plot(base,coe1,coe2,coe3,Hz,start,end):
     print("ploting...")
     plt.figure(1)
 
     plt.subplot(221)
     plt.plot(base,color = palette[0])
+    plt.axvline(start, color='c',label = "start")
+    plt.axvline(end, color='m',label = "end")
     plt.xlim([0,len(base)-1])
     plt.xlabel(u"number of data")
     plt.ylabel(u"power")
@@ -132,7 +137,7 @@ def plot(base,coe1,coe2,coe3,Hz):
     plt.yscale("log")
     plt.xticks(np.linspace(1, len(coe3), 12), np.linspace(1, len(coe3)*Hz, 12))
     plt.xlim([0,int((len(coe2)-1)/2)])
-    plt.xlabel(u"kHz")
+    plt.xlabel(u"frequency [kHz]")
     plt.ylabel(u"power")
     #plt.legend()
     plt.title("fourie transform")
@@ -147,10 +152,14 @@ if __name__ == '__main__':
         usage()
     y = importData()
     start,N = makePalam(y)
-    dt = int(argv[2])                       # サンプリング間隔
-    yCut = broach(y, start, N)
-    sig,freq = FFT(yCut,dt)
-    print(freq)
-    print(len(sig))
-    plot(y,np.real(sig),np.imag(sig),np.abs(sig),dt)
-    #print(len(y))
+    dt = int(argv[2])
+    if start == "n":
+        for i in range((len(y)//N)*2):
+            start = i*(N//2)
+            yCut = broach(y, start, N)
+            sig,freq = FFT(yCut,dt)
+            plot(y,np.real(sig),np.imag(sig),np.abs(sig),dt,start,start + N)
+    else :
+        yCut = broach(y, start, N)
+        sig,freq = FFT(yCut,dt)
+        plot(y,np.real(sig),np.imag(sig),np.abs(sig),dt,start,start + N)
