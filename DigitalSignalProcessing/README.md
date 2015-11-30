@@ -17,7 +17,7 @@ pythonを使用したことの無い方は[こちら](https://www.python.org/dow
 ・ [scipy](http://www.lfd.uci.edu/~gohlke/pythonlibs/#scipy)<br>
 ・ [matplotlib](http://www.lfd.uci.edu/~gohlke/pythonlibs/#matplotlib)<br>
 の三つです。上記がリンクになったいるのでそれぞれ自分のバージョンに合っているもの(この場合は3.4なのでcp34、win32とwinはbit数の違いです)<br>
-それぞれダウンロードして来たら、コマンドプロンプトを開きます。<br>
+それぞれダウンロードして来たら、**管理者権限で**コマンドプロンプトを開きます。<br>
 そこに、
 ```
 pip install ダウンロードしてきたファイル
