@@ -3,7 +3,7 @@
 #   Name:		FourieTransform.py
 #	Author:		R.Imai
 #	Created:	2015 / 11 / 27
-#	Last Date:	2015 / 11 / 27
+#	Last Date:	2015 / 12 / 01
 #	Note:
 #-------------------------------------------------------------------------------
 
@@ -11,6 +11,7 @@ import sys
 import csv
 import numpy as np
 from scipy import fftpack
+from scipy import signal as sg
 import matplotlib.pyplot as plt
 import codecs
 from math import *
@@ -22,6 +23,8 @@ argNum = len(sys.argv)
 palette = ["#ff0000","#0000ff","#00ff00","#ff8c00","#a600ff","#ff61d7","#1e90ff","#77ff77","#ffff77","#d71a80","#be0b0d","#1a0099","#0e8154","#96781c","#6c128b","#f9a8e4","#9cceff","#a5f0a5","#eff78d","#dc9adf"]
 
 PI = 3.141592
+output = "p"
+exFileName = "Fig"
 
 def checkUsage():
     check = False
@@ -33,12 +36,20 @@ def checkUsage():
     return check
 
 def usage():
-    print("\nコマンドライン引数: (入力ファイル名)(サンプリング間隔)(範囲)(値1)(値2)")
-    print("\t範囲:\t-a: すべての区間\t(値1)(値2)は入力なし")
-    print("\t　　 \t-n: (値1)にNの値を指定。最初からN間隔でフーリエ変換")
-    print("\t　　 \t-s: (値1)に開始点を指定。そこから最後まで\t(値2)はなし")
-    print("\t　　 \t-f: (値1)に終端点を指定。最初からそこまで\t(値2)はなし")
-    print("\t　　 \t-p: (値1)に開始点,(値2)に終端点を指定")
+    print("\nコマンドライン引数: (入力ファイル名)(サンプリング間隔)(モード)(値1)(値2)(値3)")
+    print("\n\tモード:\t出力:\tp: その場にプロット")
+    print("\t　　  \t　　 \ts: 保存(コマンドラインの最後に保存したいファイル名を拡張子なしで指定)")
+    print("\t　　  \t範囲:\t-a: すべての区間\t")
+    print("\t　　  \t　　 \t-n: (値1)にNの値を指定。最初からN間隔でフーリエ変換")
+    print("\t　　  \t　　 \t-s: (値1)に開始点を指定。そこから最後まで。")
+    print("\t　　  \t　　 \t-f: (値1)に終端点を指定。最初からそこまで。")
+    print("\t　　  \t　　 \t-p: (値1)に開始点,(値2)に終端点を指定")
+    print("\t　　  \t窓関数:\t-hm: ハミング窓")
+    print("\t　　  \t　　　:\t-hn: ハ二ング窓")
+    print("\t　　  \t　　　:\t-bk: ブラックマン窓")
+    print("\t　　  \t　　　:\t-ga: ガウス窓")
+    print("\t　　  \t　　　:\t-bar: バートレット窓")
+    print("\tモードは(出力)(範囲)(窓関数)で記述\n\tex)p-a-hm: すべての区間にハミング窓をかけその場に表示")
     exit()
 
 def importData():
@@ -53,37 +64,78 @@ def importData():
         print('type' + str(type(e)))
         exit()
 
-    mat=[]
     cnt = 0
     for row in reader:
         if cnt == 0:
-            mat = [int(row[0])]
+            mat = np.array(int(row[0]))
         else:
-            mat.append(int(row[0]))
+            mat = np.append(mat,int(row[0]))
         cnt += 1
     print("\tsucess!")
     return mat
 
+def mkWindow(com,N):
+    if com == "hm":
+        win = sg.hamming(N)
+    elif com == "hn":
+        win = sg.hann(N)
+    elif com == "bk":
+        win = sg.blackman(N)
+    elif com == "ga":
+        win = sg.gaussian(N,N/16)
+    elif com == "bar":
+        win = sg.bartlett(N)
+    elif com == "rect":
+        win = np.ones(N)
+    else :
+        usage()
+    return win
+
 def makePalam(y):
-    if argv[3] == "-a":
+    global output
+    global exFileName
+
+    mode = re.split(r"[-]",argv[3])
+    if not(len(mode) == 3 or len(mode) == 2):
+        usage()
+
+    output = mode[0]
+
+    if mode[1] == "a":
         start = 0
         N = len(y)
-    elif argv[3] == "-n":
+        if mode[0] == "s":
+            exFileName = argv[4]
+    elif mode[1] == "n":
         start = "n"
         N = int(argv[4])
-    elif argv[3] == "-s":
+        if mode[0] == "s":
+            exFileName = argv[5]
+    elif mode[1] == "s":
         start = int(argv[4])
         N = len(y) - int(argv[4])
-    elif argv[3] == "-f":
+        if mode[0] == "s":
+            exFileName = argv[5]
+    elif mode[1] == "f":
         start = 0
         N = int(argv[4])
-    elif argv[3] == "-p":
+        if mode[0] == "s":
+            exFileName = argv[5]
+    elif mode[1] == "p":
         start = int(argv[4])
         N = int(argv[5]) - int(argv[4])
+        if mode[0] == "s":
+            exFileName = argv[6]
     else :
         usage()
 
-    return start,N
+    if (len(mode) == 3):
+        win = mkWindow(mode[2],N)
+    else:
+        win = mkWindow("rect",N)
+
+    return start,N,win
+
 
 def broach(y, start, n):
     newY = []
@@ -92,6 +144,7 @@ def broach(y, start, n):
 
     return newY
 
+
 def FFT(y,dt):
     print("During analysis...")
     freq = fftpack.fftfreq(len(y), d = dt)
@@ -99,19 +152,19 @@ def FFT(y,dt):
     print("\tsucsess!")
     return sig,freq
 
-def plot(base,coe1,coe2,coe3,Hz,start,end):
+
+def plot(base,coe1,coe2,coe3,Hz,start,end,n):
     print("ploting...")
-    plt.figure(1)
+    plt.figure(figsize=(16, 9))
 
     plt.subplot(221)
     plt.plot(base,color = palette[0])
-    plt.axvline(start, color='c',label = "start")
-    plt.axvline(end, color='m',label = "end")
+    plt.axvline(start, color = palette[12],label = "start")
+    plt.axvline(end, color = palette[11],label = "end")
     plt.xlim([0,len(base)-1])
     plt.xlabel(u"number of data")
     plt.ylabel(u"power")
     plt.title("origin signal")
-    #plt.legend()
 
 
     plt.subplot(222)
@@ -119,8 +172,7 @@ def plot(base,coe1,coe2,coe3,Hz,start,end):
     plt.xlim([0,len(coe1)-1])
     plt.xlabel(u"Hz")
     plt.ylabel(u"power")
-    plt.title("real part")
-    #plt.legend()
+    plt.title("window function")
 
 
     plt.subplot(223)
@@ -128,22 +180,25 @@ def plot(base,coe1,coe2,coe3,Hz,start,end):
     plt.xlim([0,len(coe2)-1])
     plt.xlabel(u"Hz")
     plt.ylabel(u"power")
-    plt.title("imaginary part")
-    #plt.legend()
+    plt.title("processing signal")
 
 
     plt.subplot(224)
     plt.plot(coe3,color = palette[3])
-    plt.yscale("log")
-    plt.xticks(np.linspace(1, len(coe3), 12), np.linspace(1, len(coe3)*Hz, 12))
+    #plt.yscale("log")
+    plt.xticks(np.linspace(0,(len(coe3)//16)*16,17),np.linspace(0,(len(coe3)//16)*16*Hz,17).astype(np.int))
     plt.xlim([0,int((len(coe2)-1)/2)])
     plt.xlabel(u"frequency [kHz]")
     plt.ylabel(u"power")
-    #plt.legend()
     plt.title("fourie transform")
-    plt.show()
-    #plt.savefig("Fig1.png")
-    print("\tsucess!")
+    if output == "p":
+        plt.show()
+        print("\tsucess!")
+        plt.clf
+    elif output == "s":
+        plt.savefig(exFileName + str(n) + ".png")
+        print("\tsave " + exFileName + str(n) + ".png")
+        plt.close()
 
 
 
@@ -151,15 +206,19 @@ if __name__ == '__main__':
     if checkUsage():
         usage()
     y = importData()
-    start,N = makePalam(y)
+    start,N,win = makePalam(y)
     dt = int(argv[2])
     if start == "n":
         for i in range((len(y)//N)*2):
             start = i*(N//2)
             yCut = broach(y, start, N)
+            winY = yCut * win
             sig,freq = FFT(yCut,dt)
-            plot(y,np.real(sig),np.imag(sig),np.abs(sig),dt,start,start + N)
+            #plot(y,np.real(sig),np.imag(sig),np.abs(sig),dt,start,start + N,i)
+            plot(y,win,winY,np.abs(sig),dt,start,start + N, i)
     else :
         yCut = broach(y, start, N)
+        winY = yCut * win
         sig,freq = FFT(yCut,dt)
-        plot(y,np.real(sig),np.imag(sig),np.abs(sig),dt,start,start + N)
+        #plot(y,np.real(sig),np.imag(sig),np.abs(sig),dt,start,start + N,"")
+        plot(y,win,winY,np.abs(sig),dt,start,start + N,"")

@@ -3,7 +3,7 @@
 ## 環境設定
 ### pythonインストール
 このプログラムはpython3.4を使用して書かれています。
-pythonを使用したことの無い方は[こちら](https://www.python.org/downloads/release/python-343/ "Title")からインストーラーをダウンロードしてpythonをインストールしてください。<br>
+pythonを使用したことの無い方は[こちら](https://www.python.org/downloads/release/python-343/ "Python.org")からインストーラーをダウンロードしてpythonをインストールしてください。<br>
 次にパスの設定があるので、[windows]+[e]でエクスプローラを開き、右上にある「システムのプロパティ」をクリック。<br>
 左側にある「システムの詳細設定」へ移動します。
 出てきたウィンドウの下の方の「環境変数(N)」をクリック。<br>
@@ -13,16 +13,13 @@ pythonを使用したことの無い方は[こちら](https://www.python.org/dow
 「python」とうちエラーが出なかったらOKです。
 ### 各種ライブラリインストール
 今回使用するライブラリは、<br>
-・ [numpy](http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy)<br>
-・ [scipy](http://www.lfd.uci.edu/~gohlke/pythonlibs/#scipy)<br>
-・ [matplotlib](http://www.lfd.uci.edu/~gohlke/pythonlibs/#matplotlib)<br>
+・ [numpy](http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy "numpy")<br>
+・ [scipy](http://www.lfd.uci.edu/~gohlke/pythonlibs/#scipy "scipy")<br>
+・ [matplotlib](http://www.lfd.uci.edu/~gohlke/pythonlibs/#matplotlib "matplotlib")<br>
 の三つです。上記がリンクになったいるのでそれぞれ自分のバージョンに合っているもの(この場合は3.4なのでcp34、win32とwinはbit数の違いです)<br>
-それぞれダウンロードして来たら、**管理者権限で**
-コマンドプロンプトを開きます。<br>
+それぞれダウンロードして来たら、**管理者権限で** コマンドプロンプトを開きます。<br>
 そこに、
-```
-pip install ダウンロードしてきたファイル
-```
+`pip install ダウンロードしてきたファイル`
 と打って上記三種類をインストールします。(python2.7等だとpipがインストールされていない場合があります。その際は[このサイト](http://www.aoki.ecei.tohoku.ac.jp/~ito/python_windows.html)を参照してください)<br>
 ちゃんとインストールできたか確認します。コマンドプロンプトで、「python」と打ってから
 ```python
@@ -37,39 +34,43 @@ import matplotlib
 使用しているのはscipyのfftpackです。
 まずGitHubから任意の場所へFourieTransform.pyをダウンロードしてください。
 コマンドプロンプトを開き、
-```
-cd ダウンロードしたフォルダまでのパス
-```
+`cd ダウンロードしたフォルダまでのパス`
 とうち、そのフォルダまで移動します。
 次に
-```
-python FourieTransform.py 入力ファイル名 サンプリング間隔 範囲 値1 値2
-```
+`python FourieTransform.py 入力ファイル名 サンプリング間隔 モード指定 値1 値2 値3`
 の順で入力してください。<br>
-ここで範囲以降は以下に従って入力してください。<br>
--a: すべての区間　　　　　(値1)(値2)は入力なし<br>
--n: N間隔ですべての領域　 (値1)にNの値を指定。最初からN間隔でフーリエ変換<br>
--s: 開始点のみ(値1)に指定　　　　(値2)は入力なし<br>
--f: 終端点のみ(値1)に指定　　　　(値2)は入力なし<br>
--p: 開始点,終端点を(値1)(値2)に指定<br>
-例えば,signal.txtを全区間でのフーリエ変換をする場合は、
-```
-python FourieTransform.py signal.txt -a
-```
-signal.txtをN = 256 で順番にフーリエ変換をする場合は、
-```
-python FourieTransform.py signal.txt -n 256
-```
-と入力すればOKです。
+ここでモード指定以降は以下に従って入力してください。<br>
+* 出力について:<br>
+    * p: その場にプロット<br>
+    * s: 画像を保存(この場合、コマンドラインの最後に保存したいファイル名を拡張子なしで指定)<br>
+* フーリエ変換の範囲について
+    * -a: すべての区間　　　　　(値1)(値2)は入力なし<br>
+    * -n: N間隔ですべての領域　 (値1)にNの値を指定。最初からN間隔でフーリエ変換<br>
+    * -s: 開始点のみ(値1)に指定　　　　(値2)は入力なし<br>
+    * -f: 終端点のみ(値1)に指定　　　　(値2)は入力なし<br>
+    * -p: 開始点,終端点を(値1)(値2)に指定<br>
+* 窓関数について
+    * -hm: ハミング窓
+    * -hn: ハ二ング窓
+    * -bk: ブラックマン窓
+    * -ga: ガウス窓
+    * -bar: バートレット窓
+    * -rect: 矩形窓(信号そのまま。何も書かない場合これになる)<br>
+
+窓関数が何かは自分で調べるか聞くかしてください(^^)<br>
+
+例えば,サンプリング間隔16kHzのsignal.txtを全区間ハミング窓でフーリエ変換をしその場に表示する場合は、
+`python FourieTransform.py signal.txt 16 p-a-hm`<br>
+サンプリング間隔16kHzのsignal.txtをN = 256 で順番にブラックマン窓でフーリエ変換をしFig0.png , Fig1.png...と保存したい場合は、
+`python FourieTransform.py signal.txt 16 s-n-bk 256 Fig`
+と入力すればOKです。<br>
 
 この使い方は
-```
-python FourieTransform.py help
-```
-で確認できます。<br><br>
+`python FourieTransform.py help`
+でも確認できます。<br><br>
 以上が正しく入力出来ているとグラフが表示されるはずです。
 
 #### 今後予定している追加機能
-・ 自動で保存<br>
-・ 窓関数の追加<br><br>
+~~・ 自動で保存~~(2015/12/01完了)<br>
+~~・ 窓関数の追加~~(2015/12/01完了)<br><br>
 その他アドバイスがあればお願いします。
