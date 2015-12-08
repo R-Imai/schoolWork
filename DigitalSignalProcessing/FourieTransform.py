@@ -3,7 +3,7 @@
 #   Name:		FourieTransform.py
 #	Author:		R.Imai
 #	Created:	2015 / 11 / 27
-#	Last Date:	2015 / 12 / 01
+#	Last Date:	2015 / 12 / 08
 #	Note:
 #-------------------------------------------------------------------------------
 
@@ -170,7 +170,7 @@ def plot(base,coe1,coe2,coe3,Hz,start,end,n):
     plt.subplot(222)
     plt.plot(coe1,color = palette[1])
     plt.xlim([0,len(coe1)-1])
-    plt.xlabel(u"Hz")
+    plt.xlabel(u"number of data")
     plt.ylabel(u"power")
     plt.title("window function")
 
@@ -178,7 +178,7 @@ def plot(base,coe1,coe2,coe3,Hz,start,end,n):
     plt.subplot(223)
     plt.plot(coe2,color = palette[2])
     plt.xlim([0,len(coe2)-1])
-    plt.xlabel(u"Hz")
+    plt.xlabel(u"number of data")
     plt.ylabel(u"power")
     plt.title("processing signal")
 
@@ -186,7 +186,7 @@ def plot(base,coe1,coe2,coe3,Hz,start,end,n):
     plt.subplot(224)
     plt.plot(coe3,color = palette[3])
     #plt.yscale("log")
-    plt.xticks(np.linspace(0,(len(coe3)//16)*16,17),np.linspace(0,(len(coe3)//16)*16*Hz,17).astype(np.int))
+    plt.xticks(np.linspace(0,(len(coe3)//16)*16,17),np.linspace(0,(len(coe3)//16)*16*Hz/(end-start),17).astype(np.int))
     plt.xlim([0,int((len(coe2)-1)/2)])
     plt.xlabel(u"frequency [kHz]")
     plt.ylabel(u"power")
