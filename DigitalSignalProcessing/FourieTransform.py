@@ -41,6 +41,7 @@ def usage():
     print("\nコマンドライン引数: (入力ファイル名)(サンプリング間隔)(モード)(値1)(値2)(保存先ファイル名)(プロット内容)")
     print("\n\tモード:\t出力:\tp: その場にプロット")
     print("\t　　  \t　　 \ts: 保存((保存先ファイル名)に保存したいファイル名を拡張子なしで指定)")
+    print("\t　　  \t　　 \tcsv: csvで保存((保存先ファイル名)に保存したいファイル名を拡張子なしで指定)")
     print("\t　　  \t範囲:\t-a: すべての区間\t")
     print("\t　　  \t　　 \t-n: (値1)にNの値を指定。最初からN間隔でフーリエ変換")
     print("\t　　  \t　　 \t-s: (値1)に開始点を指定。そこから最後まで。")
@@ -63,18 +64,22 @@ def usage():
 
     exit()
 
-
-def importData():
-    print("importing...")
+def fileOpen(path,mode):
     try:
-        fp1 = open(argv[1], 'r')
-        reader = csv.reader(fp1)
+        fp = open(path, mode)
     except IOError:
-        print (argv[1]+"cannot be opened.")
+        print (path+"cannot be opened.")
         exit()
     except Exception as e:
         print('type' + str(type(e)))
         exit()
+    return fp
+
+
+def importData():
+    print("importing...")
+    fp1 = fileOpen(argv[1], "r")
+    reader = csv.reader(fp1)
 
     cnt = 0
     for row in reader:
@@ -116,7 +121,7 @@ def makePalam(y):
     if mode[1] == "a":
         start = 0
         N = len(y)
-        if mode[0] == "s":
+        if mode[0] == "s" or mode[0] == "csv":
             exFileName = argv[4]
             try:
                 palamList = argv[5]
@@ -131,7 +136,7 @@ def makePalam(y):
     elif mode[1] == "n":
         start = "n"
         N = int(argv[4])
-        if mode[0] == "s":
+        if mode[0] == "s" or mode[0] == "csv":
             exFileName = argv[5]
             try:
                 palamList = argv[6]
@@ -146,7 +151,7 @@ def makePalam(y):
     elif mode[1] == "s":
         start = int(argv[4])
         N = len(y) - int(argv[4])
-        if mode[0] == "s":
+        if mode[0] == "s" or mode[0] == "csv":
             exFileName = argv[5]
             try:
                 palamList = argv[6]
@@ -161,7 +166,7 @@ def makePalam(y):
     elif mode[1] == "f":
         start = 0
         N = int(argv[4])
-        if mode[0] == "s":
+        if mode[0] == "s" or mode[0] == "csv":
             exFileName = argv[5]
             try:
                 palamList = argv[6]
@@ -176,7 +181,7 @@ def makePalam(y):
     elif mode[1] == "p":
         start = int(argv[4])
         N = int(argv[5]) - int(argv[4])
-        if mode[0] == "s":
+        if mode[0] == "s" or mode[0] == "csv":
             exFileName = argv[6]
             try:
                 palamList = argv[7]
@@ -264,6 +269,7 @@ def detailPlot(palam, start, end, leng, Hz):
     elif palam == 4:
         plt.xticks(np.linspace(0,(leng//16)*16,17),np.linspace(0,(leng//16)*16*Hz/(end-start),17).astype(np.int))
         plt.xlim([0,int((leng-1)/2)])
+        #plt.ylim([-5,100000])
         plt.xlabel(u"frequency [kHz]")
         plt.ylabel(u"power")
         plt.title("fourie transform")
@@ -314,6 +320,14 @@ def plot3D(re,im,N,Hz,n):
         plt.close()
 
 
+def saveCSV(sig, Hz, N, n):
+    fpW = fileOpen(exFileName + str(n) + ".csv", "w")
+    for i in range(len(sig)):
+        fpW.write(str(i*Hz/N) + "," + str(sig[i]) + "\n")
+    print("save " + exFileName + str(n) + ".csv")
+    fpW.close()
+
+
 
 if __name__ == '__main__':
     if checkUsage():
@@ -329,7 +343,9 @@ if __name__ == '__main__':
             sig,freq = FFT(yCut,dt)
             plotPalam = getPlotPalam(palamList)
             sendData = [y, win, np.real(sig), np.imag(sig), np.abs(sig), winY]
-            if plotPalam == "3d":
+            if output == "csv":
+                saveCSV(np.abs(sig),dt,N,i)
+            elif plotPalam == "3d":
                 plot3D(np.real(sig),np.imag(sig),N,dt,i)
             else:
                 plot2D(plotPalam, sendData,dt,start,start + N, i)
@@ -339,7 +355,9 @@ if __name__ == '__main__':
         sig,freq = FFT(yCut,dt)
         plotPalam = getPlotPalam(palamList)
         sendData = [y, win, np.real(sig), np.imag(sig), np.abs(sig), winY]
-        if plotPalam == "3d":
+        if output == "csv":
+            saveCSV(np.abs(sig),dt,N,"")
+        elif plotPalam == "3d":
             plot3D(np.real(sig),np.imag(sig),N,dt,"")
         else:
             plot2D(plotPalam, sendData,dt,start,start + N,"")
