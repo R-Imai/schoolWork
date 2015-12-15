@@ -3,7 +3,7 @@
 #   Name:		FourieTransform.py
 #	Author:		R.Imai
 #	Created:	2015 / 11 / 27
-#	Last Date:	2015 / 12 / 10
+#	Last Date:	2015 / 12 / 15
 #	Note:
 #-------------------------------------------------------------------------------
 
@@ -84,9 +84,9 @@ def importData():
     cnt = 0
     for row in reader:
         if cnt == 0:
-            mat = np.array(int(row[0]))
+            mat = np.array(float(row[0]))
         else:
-            mat = np.append(mat,int(row[0]))
+            mat = np.append(mat,float(row[0]))
         cnt += 1
     print("\tsucess!")
     return mat
@@ -334,13 +334,13 @@ if __name__ == '__main__':
         usage()
     y = importData()
     start,N,win,palamList = makePalam(y)
-    dt = int(argv[2])
+    dt = float(argv[2])
     if start == "n":
         for i in range((len(y)//N)*2):
             start = i*(N//2)
             yCut = broach(y, start, N)
             winY = yCut * win
-            sig,freq = FFT(yCut,dt)
+            sig,freq = FFT(winY,dt)
             plotPalam = getPlotPalam(palamList)
             sendData = [y, win, np.real(sig), np.imag(sig), np.abs(sig), winY]
             if output == "csv":
@@ -352,7 +352,7 @@ if __name__ == '__main__':
     else :
         yCut = broach(y, start, N)
         winY = yCut * win
-        sig,freq = FFT(yCut,dt)
+        sig,freq = FFT(winY,dt)
         plotPalam = getPlotPalam(palamList)
         sendData = [y, win, np.real(sig), np.imag(sig), np.abs(sig), winY]
         if output == "csv":
