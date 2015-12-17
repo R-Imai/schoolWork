@@ -3,7 +3,7 @@
 #   Name:		FourieTransform.py
 #	Author:		R.Imai
 #	Created:	2015 / 11 / 27
-#	Last Date:	2015 / 12 / 15
+#	Last Date:	2015 / 12 / 17
 #	Note:
 #-------------------------------------------------------------------------------
 
@@ -17,6 +17,7 @@ import codecs
 from math import *
 import re
 from mpl_toolkits.mplot3d import Axes3D
+#from pylab import*
 
 
 argv = sys.argv
@@ -269,7 +270,7 @@ def detailPlot(palam, start, end, leng, Hz):
     elif palam == 4:
         plt.xticks(np.linspace(0,(leng//16)*16,17),np.linspace(0,(leng//16)*16*Hz/(end-start),17).astype(np.int))
         plt.xlim([0,int((leng-1)/2)])
-        #plt.ylim([-5,100000])
+        plt.ylim([-5,120000])
         plt.xlabel(u"frequency [kHz]")
         plt.ylabel(u"power")
         plt.title("fourie transform")
@@ -300,23 +301,25 @@ def plot2D(plotPalam, data,Hz,start,end,n):
         plt.close()
 
 
-def plot3D(re,im,N,Hz,n):
+def plot3D(re,N,Hz):
     print("ploting3D...")
+    x = np.arange(0,len(re[0]))*(Hz/N)
+    y = np.arange(0,len(re))*(N/(Hz*2000))
+    X,Y = np.meshgrid(x,y)
     fig = plt.figure(1)
-    ax = fig.add_subplot(111, projection='3d')
-    ax.plot3D(np.linspace(1, N, N), re, im)
-    plt.xticks(np.linspace(0,(N//16)*16,17),np.linspace(0,(N/16)*16*Hz/N,17).astype(np.int))
+    ax = Axes3D(fig)
+    ax.plot_wireframe(X,Y,re,color = palette[6])
     ax.set_xlabel("frequency [kHz]")
-    ax.set_ylabel("real parts power")
-    ax.set_zlabel("imaginary parts power")
+    ax.set_ylabel("time [s]")
+    ax.set_zlabel("power")
 
     if output == "p":
         plt.show()
         print("\tsucess!")
         plt.clf
     elif output == "s":
-        plt.savefig(exFileName + str(n) + ".png")
-        print("\tsave " + exFileName + str(n) + ".png")
+        plt.savefig(exFileName + ".png")
+        print("\tsave " + exFileName + ".png")
         plt.close()
 
 
@@ -333,10 +336,13 @@ if __name__ == '__main__':
     if checkUsage():
         usage()
     y = importData()
+    print(len(y))
     start,N,win,palamList = makePalam(y)
+    isFirstTime = True
+    power3D = []
     dt = float(argv[2])
     if start == "n":
-        for i in range((len(y)//N)*2):
+        for i in range((len(y)//N)*2 - 1):
             start = i*(N//2)
             yCut = broach(y, start, N)
             winY = yCut * win
@@ -346,9 +352,12 @@ if __name__ == '__main__':
             if output == "csv":
                 saveCSV(np.abs(sig),dt,N,i)
             elif plotPalam == "3d":
-                plot3D(np.real(sig),np.imag(sig),N,dt,i)
+                power3D.append(np.abs(sig[0:len(sig)/2]))
             else:
                 plot2D(plotPalam, sendData,dt,start,start + N, i)
+        if plotPalam == "3d":
+            power3D = np.array(power3D)
+            plot3D(power3D,N,dt)
     else :
         yCut = broach(y, start, N)
         winY = yCut * win
@@ -358,6 +367,6 @@ if __name__ == '__main__':
         if output == "csv":
             saveCSV(np.abs(sig),dt,N,"")
         elif plotPalam == "3d":
-            plot3D(np.real(sig),np.imag(sig),N,dt,"")
+            print("3D表示は範囲がnの時のみ使用可能です")
         else:
             plot2D(plotPalam, sendData,dt,start,start + N,"")
