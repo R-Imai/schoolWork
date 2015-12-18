@@ -3,7 +3,7 @@
 #   Name:		FourieTransform.py
 #	Author:		R.Imai
 #	Created:	2015 / 11 / 27
-#	Last Date:	2015 / 12 / 17
+#	Last Date:	2015 / 12 / 10
 #	Note:
 #-------------------------------------------------------------------------------
 
@@ -270,7 +270,7 @@ def detailPlot(palam, start, end, leng, Hz):
     elif palam == 4:
         plt.xticks(np.linspace(0,(leng//16)*16,17),np.linspace(0,(leng//16)*16*Hz/(end-start),17).astype(np.int))
         plt.xlim([0,int((leng-1)/2)])
-        plt.ylim([-5,120000])
+        #plt.ylim([-5,120000])
         plt.xlabel(u"frequency [kHz]")
         plt.ylabel(u"power")
         plt.title("fourie transform")
